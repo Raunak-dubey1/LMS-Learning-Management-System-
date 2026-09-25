@@ -10,7 +10,7 @@ import AdminPage from './pages/AdminPage.jsx';
 import CourseCatalogPage from './pages/CourseCatalogPage.jsx';
 import CourseDetailPage from './pages/CourseDetailPage.jsx';
 import DashboardPage from './pages/DashboardPage.jsx';
-import { CourseEditorPage, InstructorCoursesPage, InstructorStudentsPage } from './pages/ManagementPages.jsx';
+import { CourseEditorPage, InstructorAnalyticsPage, InstructorCoursesPage, InstructorStudentsPage } from './pages/ManagementPages.jsx';
 import { LearningPage, ProfilePage, QuizHistoryPage } from './pages/StudentPages.jsx';
 
 function ProtectedRoute({ token }) {
@@ -54,9 +54,10 @@ function LmsRoutes({ lms, user, setMessage, message, profile, setProfile, onLogo
       <Route path="/instructor/courses/new" element={<CourseEditorPage form={lms.courseForm} setForm={lms.setCourseForm} onSave={lms.saveCourse} editing={false} onAddSection={addSection} onAddLesson={addLesson} />} />
       <Route path="/instructor/courses/edit" element={<CourseEditorPage form={lms.courseForm} setForm={lms.setCourseForm} onSave={lms.saveCourse} editing onAddSection={addSection} onAddLesson={addLesson} />} />
       <Route path="/instructor/students" element={<InstructorStudentsPage students={lms.instructorDashboard?.students} />} />
-      <Route path="/instructor/analytics" element={<DashboardPage role="instructor" instructorDashboard={lms.instructorDashboard} setView={() => {}} />} />
+      <Route path="/instructor/analytics" element={<InstructorAnalyticsPage dashboard={lms.instructorDashboard} />} />
       <Route path="/course" element={<Navigate to="/courses" replace />} />
       {['users', 'instructors', 'courses', 'reviews', 'categories', 'audit'].map((section) => <Route key={section} path={`/admin/${section}`} element={<AdminPage section={section} users={lms.adminUsers} instructors={lms.pendingInstructors} courses={lms.adminCourses} reviews={lms.adminReviews} categories={lms.adminCategories} logs={lms.auditLogs} action={lms.adminAction} newCategory={newCategory} setNewCategory={setNewCategory} />} />)}
+      <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Route>
   </Routes>;
 }
@@ -69,14 +70,19 @@ function App() {
 
   useEffect(() => { if (auth.user) setProfile((previous) => ({ ...previous, name: auth.user.name, email: auth.user.email })); }, [auth.user]);
 
-  if (!auth.token) return <AuthPage authMode={auth.authMode} authForm={auth.authForm} message={message} onModeChange={auth.setAuthMode} onChange={auth.handleAuthChange} onSubmit={auth.authenticate} />;
-  if (auth.isLoading || !auth.user) return <div className="auth-page"><div className="auth-card"><div className="auth-header"><span className="badge">LMS</span><h1>Loading your workspace</h1><p>Checking your account session...</p></div></div></div>;
+  if (auth.token && (auth.isLoading || !auth.user)) return <div className="auth-page"><div className="auth-card"><div className="auth-header"><span className="badge">LMS</span><h1>Loading your workspace</h1><p>Checking your account session...</p></div></div></div>;
+
+  if (!auth.token) {
+    return <Routes>
+      <Route path="/" element={<AuthPage authMode={auth.authMode} authForm={auth.authForm} message={message} onModeChange={auth.setAuthMode} onChange={auth.handleAuthChange} onSubmit={auth.authenticate} />} />
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>;
+  }
 
   return <Routes>
     <Route element={<ProtectedRoute token={auth.token} />}>
       <Route path="/*" element={<LmsRoutes lms={{ ...lms, token: auth.token, onMessage: setMessage }} user={auth.user} setMessage={setMessage} message={message} profile={profile} setProfile={setProfile} onLogout={auth.logout} />} />
     </Route>
-    <Route path="*" element={<Navigate to="/dashboard" replace />} />
   </Routes>;
 }
 
