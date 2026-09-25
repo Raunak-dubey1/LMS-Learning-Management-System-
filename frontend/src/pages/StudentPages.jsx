@@ -1,0 +1,11 @@
+export function LearningPage({ dashboard, onSelect }) {
+  return <div className="panel-grid courses-grid">{(dashboard?.myCourses || []).map((course) => <article className="card course-card" key={course.courseId}><h3>{course.title}</h3><div className="progress-track"><span style={{ width: `${course.progress || 0}%` }} /></div><strong>{course.progress || 0}% complete</strong><button className="primary-btn" onClick={() => onSelect(course.courseId)} type="button">Continue learning</button></article>)}{!dashboard?.myCourses?.length && <div className="card wide"><h3>Your learning is empty</h3><p>Discover a course and enroll to begin.</p></div>}</div>;
+}
+
+export function QuizHistoryPage({ attempts }) {
+  return <div className="card table-card"><h3>Quiz history</h3><div className="data-table"><div className="table-row table-head"><span>Course</span><span>Score</span><span>Status</span><span>Date</span></div>{attempts.map((attempt) => <div className="table-row" key={attempt._id}><span>{attempt.course?.title || 'Course quiz'}</span><span>{attempt.score}%</span><span>{attempt.status}</span><span>{new Date(attempt.submittedAt).toLocaleDateString()}</span></div>)}</div></div>;
+}
+
+export function ProfilePage({ user, profile, setProfile, onUpdate, onPassword }) {
+  return <div className="row"><form className="card auth-form" onSubmit={onUpdate}><h3>Profile</h3><label>Name<input value={profile.name || user?.name || ''} onChange={(event) => setProfile({ ...profile, name: event.target.value })} required /></label><label>Email<input type="email" value={profile.email || user?.email || ''} onChange={(event) => setProfile({ ...profile, email: event.target.value })} required /></label><button className="primary-btn" type="submit">Save profile</button></form><form className="card auth-form" onSubmit={onPassword}><h3>Change password</h3><label>Current password<input type="password" value={profile.currentPassword} onChange={(event) => setProfile({ ...profile, currentPassword: event.target.value })} required /></label><label>New password<input type="password" value={profile.newPassword} onChange={(event) => setProfile({ ...profile, newPassword: event.target.value })} required /></label><button className="primary-btn" type="submit">Change password</button></form></div>;
+}
