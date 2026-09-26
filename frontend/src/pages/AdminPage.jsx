@@ -1,8 +1,263 @@
-export default function AdminPage({ section, users, instructors, courses, reviews, categories, logs, action, newCategory, setNewCategory }) {
-  if (section === 'users') return <div className="card table-card"><h3>User management</h3><div className="data-table"><div className="table-row table-head"><span>User</span><span>Role</span><span>Status</span><span>Actions</span></div>{users.map((item) => <div className="table-row" key={item._id}><span><strong>{item.name}</strong><small>{item.email}</small></span><span>{item.role}</span><span>{item.status}</span><span className="table-actions">{item.status === 'suspended' ? <button className="secondary-btn" onClick={() => action(`/admin/users/${item._id}/status`, 'PATCH', { status: 'active' })} type="button">Activate</button> : <button className="secondary-btn" onClick={() => action(`/admin/users/${item._id}/status`, 'PATCH', { status: 'suspended' })} type="button">Suspend</button>}{item.role === 'student' && <button className="secondary-btn" onClick={() => action(`/admin/users/${item._id}/role`, 'PATCH', { role: 'instructor' })} type="button">Invite instructor</button>}</span></div>)}</div></div>;
-  if (section === 'instructors') return <div className="card table-card"><h3>Pending instructor applications</h3><div className="data-table">{instructors.map((item) => <div className="table-row" key={item._id}><span><strong>{item.name}</strong><small>{item.email}</small></span><span>{item.instructorExperience || 'Not provided'}</span><span>{new Date(item.createdAt).toLocaleDateString()}</span><span className="table-actions"><button className="primary-btn" onClick={() => action(`/admin/instructors/${item._id}/approve`)} type="button">Approve</button><button className="secondary-btn" onClick={() => action(`/admin/instructors/${item._id}/reject`, 'PATCH', { reason: 'Application rejected' })} type="button">Reject</button></span></div>)}</div></div>;
-  if (section === 'courses') return <div className="card table-card"><h3>Course moderation</h3><div className="data-table">{courses.map((item) => <div className="table-row" key={item._id}><span><strong>{item.title}</strong><small>{item.category} · {item.students} students</small></span><span>{item.instructor?.name || 'Unknown'}</span><span>{item.moderationStatus || (item.published ? 'published' : 'draft')}</span><span className="table-actions"><button className="primary-btn" onClick={() => action(`/admin/courses/${item._id}/status`, 'PATCH', { status: 'published' })} type="button">Approve</button><button className="secondary-btn" onClick={() => action(`/admin/courses/${item._id}/status`, 'PATCH', { status: 'unpublished' })} type="button">Unpublish</button></span></div>)}</div></div>;
-  if (section === 'reviews') return <div className="card table-card"><h3>Review moderation</h3><div className="data-table">{reviews.map((item) => <div className="table-row" key={item._id}><span>{item.course?.title}</span><span>{item.student?.name}</span><span>{'★'.repeat(item.rating)}<small>{item.comment}</small></span><span className="table-actions"><button className="secondary-btn" onClick={() => action(`/admin/reviews/${item._id}/status`, 'PATCH', { status: 'hidden' })} type="button">Hide</button><button className="secondary-btn" onClick={() => action(`/admin/reviews/${item._id}/status`, 'PATCH', { status: 'published' })} type="button">Keep</button></span></div>)}</div></div>;
-  if (section === 'categories') return <div className="card table-card"><div className="section-heading"><h3>Categories</h3><form className="inline-form" onSubmit={(event) => { event.preventDefault(); action('/admin/categories', 'POST', { name: newCategory }); setNewCategory(''); }}><input value={newCategory} onChange={(event) => setNewCategory(event.target.value)} placeholder="New category" required /><button className="primary-btn" type="submit">Create</button></form></div><div className="category-list">{categories.map((item) => <div className="mini-course" key={item._id}><span>{item.name}</span><button className="secondary-btn" onClick={() => action(`/admin/categories/${item._id}`, 'DELETE')} type="button">Deactivate</button></div>)}</div></div>;
-  return <div className="card table-card"><h3>Audit logs</h3><div className="data-table">{logs.map((item) => <div className="table-row" key={item._id}><span>{new Date(item.createdAt).toLocaleString()}</span><span>{item.admin?.name}</span><span>{item.action}</span><span>{item.reason || '—'}</span></div>)}</div></div>;
+export default function AdminPage({
+  section,
+  users,
+  instructors,
+  courses,
+  reviews,
+  categories,
+  logs,
+  action,
+  newCategory,
+  setNewCategory,
+}) {
+  if (section === "users")
+    return (
+      <div className="card table-card">
+        <h3>User management</h3>
+        <div className="data-table">
+          <div className="table-row table-head">
+            <span>User</span>
+            <span>Role</span>
+            <span>Status</span>
+            <span>Actions</span>
+          </div>
+          {users.map((item) => (
+            <div className="table-row" key={item._id}>
+              <span>
+                <strong>{item.name}</strong>
+                <small>{item.email}</small>
+              </span>
+              <span>{item.role}</span>
+              <span>{item.status}</span>
+              <span className="table-actions">
+                {item.status === "suspended" ? (
+                  <button
+                    className="secondary-btn"
+                    onClick={() =>
+                      action(`/admin/users/${item._id}/status`, "PATCH", {
+                        status: "active",
+                      })
+                    }
+                    type="button"
+                  >
+                    Activate
+                  </button>
+                ) : (
+                  <button
+                    className="secondary-btn"
+                    onClick={() =>
+                      action(`/admin/users/${item._id}/status`, "PATCH", {
+                        status: "suspended",
+                      })
+                    }
+                    type="button"
+                  >
+                    Suspend
+                  </button>
+                )}
+                {item.role === "student" && (
+                  <button
+                    className="secondary-btn"
+                    onClick={() =>
+                      action(`/admin/users/${item._id}/role`, "PATCH", {
+                        role: "instructor",
+                      })
+                    }
+                    type="button"
+                  >
+                    Invite instructor
+                  </button>
+                )}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  if (section === "instructors")
+    return (
+      <div className="card table-card">
+        <h3>Pending instructor applications</h3>
+        <div className="data-table">
+          {instructors.map((item) => (
+            <div className="table-row" key={item._id}>
+              <span>
+                <strong>{item.name}</strong>
+                <small>{item.email}</small>
+              </span>
+              <span>{item.instructorExperience || "Not provided"}</span>
+              <span>{new Date(item.createdAt).toLocaleDateString()}</span>
+              <span className="table-actions">
+                <button
+                  className="primary-btn"
+                  onClick={() =>
+                    action(`/admin/instructors/${item._id}/approve`)
+                  }
+                  type="button"
+                >
+                  Approve
+                </button>
+                <button
+                  className="secondary-btn"
+                  onClick={() =>
+                    action(`/admin/instructors/${item._id}/reject`, "PATCH", {
+                      reason: "Application rejected",
+                    })
+                  }
+                  type="button"
+                >
+                  Reject
+                </button>
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  if (section === "courses")
+    return (
+      <div className="card table-card">
+        <h3>Course moderation</h3>
+        <div className="data-table">
+          {courses.map((item) => (
+            <div className="table-row" key={item._id}>
+              <span>
+                <strong>{item.title}</strong>
+                <small>
+                  {item.category} · {item.students} students
+                </small>
+              </span>
+              <span>{item.instructor?.name || "Unknown"}</span>
+              <span>
+                {item.moderationStatus ||
+                  (item.published ? "published" : "draft")}
+              </span>
+              <span className="table-actions">
+                <button
+                  className="primary-btn"
+                  onClick={() =>
+                    action(`/admin/courses/${item._id}/status`, "PATCH", {
+                      status: "published",
+                    })
+                  }
+                  type="button"
+                >
+                  Approve
+                </button>
+                <button
+                  className="secondary-btn"
+                  onClick={() =>
+                    action(`/admin/courses/${item._id}/status`, "PATCH", {
+                      status: "unpublished",
+                    })
+                  }
+                  type="button"
+                >
+                  Unpublish
+                </button>
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  if (section === "reviews")
+    return (
+      <div className="card table-card">
+        <h3>Review moderation</h3>
+        <div className="data-table">
+          {reviews.map((item) => (
+            <div className="table-row" key={item._id}>
+              <span>{item.course?.title}</span>
+              <span>{item.student?.name}</span>
+              <span>
+                {"★".repeat(item.rating)}
+                <small>{item.comment}</small>
+              </span>
+              <span className="table-actions">
+                <button
+                  className="secondary-btn"
+                  onClick={() =>
+                    action(`/admin/reviews/${item._id}/status`, "PATCH", {
+                      status: "hidden",
+                    })
+                  }
+                  type="button"
+                >
+                  Hide
+                </button>
+                <button
+                  className="secondary-btn"
+                  onClick={() =>
+                    action(`/admin/reviews/${item._id}/status`, "PATCH", {
+                      status: "published",
+                    })
+                  }
+                  type="button"
+                >
+                  Keep
+                </button>
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  if (section === "categories")
+    return (
+      <div className="card table-card">
+        <div className="section-heading">
+          <h3>Categories</h3>
+          <form
+            className="inline-form"
+            onSubmit={(event) => {
+              event.preventDefault();
+              action("/admin/categories", "POST", { name: newCategory });
+              setNewCategory("");
+            }}
+          >
+            <input
+              value={newCategory}
+              onChange={(event) => setNewCategory(event.target.value)}
+              placeholder="New category"
+              required
+            />
+            <button className="primary-btn" type="submit">
+              Create
+            </button>
+          </form>
+        </div>
+        <div className="category-list">
+          {categories.map((item) => (
+            <div className="mini-course" key={item._id}>
+              <span>{item.name}</span>
+              <button
+                className="secondary-btn"
+                onClick={() =>
+                  action(`/admin/categories/${item._id}`, "DELETE")
+                }
+                type="button"
+              >
+                Deactivate
+              </button>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  return (
+    <div className="card table-card">
+      <h3>Audit logs</h3>
+      <div className="data-table">
+        {logs.map((item) => (
+          <div className="table-row" key={item._id}>
+            <span>{new Date(item.createdAt).toLocaleString()}</span>
+            <span>{item.admin?.name}</span>
+            <span>{item.action}</span>
+            <span>{item.reason || "—"}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 }
